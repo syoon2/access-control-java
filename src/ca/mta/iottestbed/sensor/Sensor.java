@@ -1,4 +1,4 @@
-package ca.mta.iottestbed.appliance;
+package ca.mta.iottestbed.sensor;
 
 import java.io.IOException;
 import java.net.ServerSocket;
