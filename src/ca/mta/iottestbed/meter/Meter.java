@@ -2,7 +2,6 @@ package ca.mta.iottestbed.meter;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
@@ -30,13 +29,16 @@ public class Meter {
     /**
      * Set of active connections.
      */
-    private Set<Connection> connections;
+    private HashSet<Connection> connections;
 
     /**
      * Meter's name.
      */
     private String name;
 
+    /**
+     * Log of network activity.
+     */
     private BufferedLogger networkLog;
 
     /**
@@ -81,7 +83,7 @@ public class Meter {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    listenToConnection(connection);
+                    monitor(connection);
                 }
             }).start();
         }
@@ -90,14 +92,14 @@ public class Meter {
     }
 
     /**
-     * Listen to a socket.
+     * Listen to a connection.
      * 
-     * Monitors a socket, and handles incoming messages. Stops listening
+     * Monitors a connection, and handles incoming messages. Stops listening
      * if a read fails.
      * 
      * @param socket Socket to listen to.
      */
-    private void listenToConnection(Connection connection) {
+    private void monitor(Connection connection) {
         // listen while connection is active
         boolean active = true;
     
