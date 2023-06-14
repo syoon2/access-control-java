@@ -9,23 +9,38 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import ca.mta.iottestbed.tools.BufferedLogger;
 import ca.mta.iottestbed.tools.NetworkUtils;
 
 /**
- * A smart meter that reads data from sensors.
+ * A smart meter that reads data from sensors over the network.
  * 
  * @author Hayden Walker
  * @version 2023-06-13
  */
 public class Meter {
 
-    // define ports
+    /**
+     * The port that the meter will listen on for information from sensors.
+     */
     private static final int LISTENING_PORT = 5006;
+
+    /**
+     * The port that the meter will use to send information to sensors.
+     */
     private static final int SENDING_PORT = 5005;
 
-    // appliances to listen to
-    private Set<Socket> appliances;
+    /**
+     * Set of active connections.
+     */
+    private Set<Socket> connections;
+
+    /**
+     * Meter's name.
+     */
     private String name;
+
+    private BufferedLogger readingLogger;
 
     /**
      * Create a new Meter object.
@@ -33,8 +48,9 @@ public class Meter {
      * @param name Name of Meter.
      */
     public Meter(String name) {
-        this.appliances = new HashSet<Socket>();
+        this.connections = new HashSet<Socket>();
         this.name = name;
+        this.readingLogger = new BufferedLogger();
     }
        
     /**
@@ -48,7 +64,7 @@ public class Meter {
     private void addDevice(String ip) throws ConnectException, IOException, UnknownHostException {
         Socket socket = new Socket(ip, SENDING_PORT);
         NetworkUtils.writeSocket(socket, "addmeter");
-        appliances.add(socket);
+        connections.add(socket);
     }
     
     /**
@@ -59,6 +75,7 @@ public class Meter {
      * @throws IOException If an IOException is encountered when opening or closing a socket.
      */
     private void listen() throws IOException {
+        // ServerSocket to listen for incoming connections
         ServerSocket listener = new ServerSocket(LISTENING_PORT);
         boolean active = true;
 
@@ -66,6 +83,7 @@ public class Meter {
             // read new socket
             Socket socket = listener.accept();
 
+            // create new thread to listen to the socket
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -90,7 +108,8 @@ public class Meter {
         boolean active = true;
     
         while(active) {
-            String data = NetworkUtils.readSocket(socket);
+            // read data from socket
+            String data = NetworkUtils.readSocket(socket, readingLogger);
             
             // stop when read fails
             if(data == null) {
@@ -117,16 +136,26 @@ public class Meter {
             }
         }).start();
 
+        System.out.println("Meter " + name + " started.");
+
         // display readings periodically
         while(true) {
-            System.out.println(name);
+            //System.out.println(name);
             //displayReadings();
+            readingLogger.printFlush();
             TimeUnit.SECONDS.sleep(5);
         }
     }
 
     public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-        Meter meter1 = new Meter("M1");
-        meter1.start(new String[]{"127.0.0.1"});
+        Meter meter1 = new Meter(args[0]);
+        
+        String[] ips = new String[args.length - 1];
+        
+        for(int i = 1; i < args.length; i++) {
+            ips[i - 1] = args[i];
+        }
+
+        meter1.start(ips);
     }
 }

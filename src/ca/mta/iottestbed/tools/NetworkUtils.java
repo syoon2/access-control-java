@@ -13,7 +13,12 @@ import java.net.Socket;
  * @version 2023-06-13
  */
 public abstract class NetworkUtils {
-    // constants
+
+    /**
+     * Sequence to separate different parts of a message.
+     * 
+     * e.g. give::_::w:8::_::e:10::_::M2
+     */
     public static final String separator = "::_::";
 
     /**
@@ -35,7 +40,6 @@ public abstract class NetworkUtils {
 
         return output.toString();
     }
-
 
     /**
      * Close a socket.
@@ -85,15 +89,35 @@ public abstract class NetworkUtils {
         // attempt to read
         try {
             String data = new DataInputStream(socket.getInputStream()).readUTF();
-            System.out.println("Read " + data + " from " + socket.getInetAddress() + ":" + socket.getLocalPort());
             return data;
         }
 
         // catch failure to read
         catch(IOException e) {
-            System.out.println("Failed to read from " + socket.getInetAddress() + ":" + socket.getLocalPort());
             return null;
         }
+    }
+
+    /**
+     * Read data from a socket.
+     * 
+     * @param socket Socket to read from.
+     * @param logger BufferedLogger to write log to.
+     * @return Data read, or {@code null} if failed.
+     */
+    public static String readSocket(Socket socket, BufferedLogger logger) {
+        // attempt to read from socket
+        String data = readSocket(socket);
+
+        // write to log
+        if(data != null) {
+            logger.log("Read " + data + " from " + socket.getInetAddress() + ":" + socket.getLocalPort());
+        } else {
+            logger.log("Failed to read from " + socket.getInetAddress() + ":" + socket.getLocalPort());
+        }
+
+        // return data read
+        return data;
     }
 
     /**
@@ -107,15 +131,35 @@ public abstract class NetworkUtils {
         // attempt to write to the socket's output stream
         try {
             new DataOutputStream(socket.getOutputStream()).writeUTF(data);
-            System.out.println("Sent " + data + " to " + socket.getInetAddress() + ":" + socket.getPort());
             return true;
-
         } 
         
         // return false if failed
         catch(IOException e) {
-            System.out.println("Failed to send  " + data + " to " + socket.getInetAddress() + ":" + socket.getPort());
             return false;
         }
+    }
+
+    /**
+     * Send a message over a socket, and log it.
+     * 
+     * @param socket Socket to send message over.
+     * @param data Message to send.
+     * @param logger Logger to write logs to.
+     * @return {@code true} if successful.
+     */
+    public static boolean writeSocket(Socket socket, String data, BufferedLogger logger) {
+        // attempt to send data
+        boolean success = writeSocket(socket, data);
+        
+        // write to log
+        if(success) { 
+            logger.log("Sent " + data + " to " + socket.getInetAddress() + ":" + socket.getPort());
+        } else {
+            logger.log("Failed to send  " + data + " to " + socket.getInetAddress() + ":" + socket.getPort());
+        }
+
+        // return success status
+        return success;
     }
 }

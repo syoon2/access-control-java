@@ -19,16 +19,51 @@ import ca.mta.iottestbed.tools.NetworkUtils;
  * @version 2023-06-13
  */
 public class Sensor {
-    // define ports
+    
+    /**
+     * The sensor will listen for information from meters on this port.
+     */
     private static final int LISTENING_PORT = 5005;
+
+    /**
+     * The sensor will send information to meters on this port.
+     */
     private static final int SENDING_PORT = 5006;
 
-    // instance variables
+    /**
+     * Random number generator for generating sensor data.
+     */
     private Random randomGenerator;
-    private int power, water;
+
+    /**
+     * Maximum power consumption.
+     */
+    private int power;
+    
+    /**
+     * Maximum water consumption.
+     */
+    private int water;
+
+    /**
+     * Name of sensor.
+     */
     private String name;
-    private Set<Socket> meters;
-    private BufferedLogger readings, networkLog;
+
+    /**
+     * Set of active connections.
+     */
+    private Set<Socket> connections;
+
+    /**
+     * Logger for sensor readings.
+     */
+    private BufferedLogger readings;
+    
+    /**
+     * Logger for network messages.
+     */
+    private BufferedLogger networkLog;
 
     /**
      * Create a new Appliance object.
@@ -41,7 +76,7 @@ public class Sensor {
         this.name = name;
         this.power = power;
         this.water = water;
-        this.meters = new HashSet<Socket>();
+        this.connections = new HashSet<Socket>();
         this.readings = new BufferedLogger();
         this.networkLog = new BufferedLogger();
     }
@@ -66,27 +101,45 @@ public class Sensor {
 
     /**
      * Report sensor readings to connected meters.
+     * 
+     * Will call {@code getWater()} and {@code getPower()}, format the readings into
+     * a {@link String}, and attempt to send that String to every {@link Socket} in {@code connections}.
+     * 
+     * If a send fails, will attempt to close the connection to the socket, and remove the socket
+     * from {@code connections}.
      */
     private void reportReadings() {
+        // get readings
         int water = getWater();
         int power = getPower();
-        String message = NetworkUtils.buildMessage("give", "w:" + water, "e:" + power, name);
-      
+
+        // log readings locally
         readings.log("Water: " + water + "; Power: " + power);
 
-        Iterator<Socket> iterator = meters.iterator();
-
+        // build message to send over network
+        String message = NetworkUtils.buildMessage("give", "w:" + water, "e:" + power, name);
+      
+        // iterate over each connection
+        Iterator<Socket> iterator = connections.iterator();
         while(iterator.hasNext()) {
-            // send message
+            
+            // get next connection
             Socket thisSocket = iterator.next();
-            if(!NetworkUtils.writeSocket(thisSocket, message)) {               
-                // attempt to remove meter
-                if(NetworkUtils.closeSocket(thisSocket)) {
-                    networkLog.log("Closed connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
-                } else {
-                    networkLog.log("Failed to close connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
-                }
+            
+            // attempt to send message
+            if(NetworkUtils.writeSocket(thisSocket, message, networkLog)) {
+                //networkLog.log("Sent " + message + " to " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
+            } 
+            
+            // close connection if failed
+            else if(NetworkUtils.closeSocket(thisSocket)) {
+                networkLog.log("Closed connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
                 iterator.remove();
+            } 
+            
+            // failed to close connection
+            else {
+                networkLog.log("Failed to close connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
             }
         }
     }
@@ -107,12 +160,12 @@ public class Sensor {
             networkLog.log("Received connection from " + connectedSocket.getInetAddress() + ":" + connectedSocket.getLocalPort());
             
             // read input
-            String input = NetworkUtils.readSocket(connectedSocket);
+            String input = NetworkUtils.readSocket(connectedSocket, networkLog);
             String[] terms = input.split(NetworkUtils.separator);
             
             // if the connection wants to add a meter, add a meter
             if(terms[0].equals("addmeter")) {
-                meters.add(new Socket(connectedSocket.getInetAddress(), SENDING_PORT));
+                connections.add(new Socket(connectedSocket.getInetAddress(), SENDING_PORT));
                 networkLog.log("Added meter " + connectedSocket.getInetAddress() + ":" + connectedSocket.getLocalPort());
             }
         }
@@ -152,7 +205,9 @@ public class Sensor {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         //Appliance a1 = new Appliance(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
-        Sensor a1 = new Sensor("A1", 10, 10);
+        //Sensor a1 = new Sensor("A1", 10, 10);
+        
+        Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         a1.start();
     }
 }
