@@ -6,7 +6,7 @@ package ca.mta.iottestbed.tools;
  * @author Hayden Walker
  * @version 2023-06-13
  */
-public class BufferedLogger {
+public class BufferedLogger implements Logger {
     /**
      * Default buffer size.
      */
@@ -82,5 +82,17 @@ public class BufferedLogger {
         // replace buffer and capacity
         buffer = newBuffer;
         capacity = newCapacity;
+    }
+
+    /**
+     * Log multiple messages.
+     * 
+     * @param messages Messages to log.
+     */
+    @Override
+    public void log(String... messages) {
+        for(String message : messages) {
+            log(message);
+        }
     }
 }
