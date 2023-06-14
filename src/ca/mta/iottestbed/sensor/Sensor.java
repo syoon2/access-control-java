@@ -53,11 +53,6 @@ public class Sensor {
      * Set of active connections.
      */
     private Set<Connection> connections;
-
-    /**
-     * Logger for sensor readings.
-     */
-    private BufferedLogger readings;
     
     /**
      * Logger for network messages.
@@ -76,7 +71,6 @@ public class Sensor {
         this.power = power;
         this.water = water;
         this.connections = new HashSet<Connection>();
-        this.readings = new BufferedLogger();
         this.networkLog = new BufferedLogger();
     }
 
@@ -111,9 +105,6 @@ public class Sensor {
         // get readings
         int water = getWater();
         int power = getPower();
-
-        // log readings locally
-        readings.log("Water: " + water + "; Power: " + power);
       
         // iterate over each connection
         Iterator<Connection> iterator = connections.iterator();
@@ -124,7 +115,7 @@ public class Sensor {
      
             // attempt to send message. if send fails, attempt to close.
             // if close is successful, remove connection.
-            if(!thisSocket.send("give", "w:" + water, "e:" + power, name) && thisSocket.close()) {
+            if(!thisSocket.send(name, "report", "w:" + water, "e:" + power) && thisSocket.close()) {
                 iterator.remove();
             } 
         }
