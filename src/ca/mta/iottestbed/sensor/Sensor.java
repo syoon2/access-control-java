@@ -133,7 +133,7 @@ public class Sensor {
     /**
      * Listen for incoming connections.
      * 
-     * @throws IOException
+     * @throws IOException If attempt to open port fails.
      */
     private void listen() throws IOException {
         
@@ -160,8 +160,8 @@ public class Sensor {
     /**
      * Start the appliance.
      * 
-     * @throws IOException
-     * @throws InterruptedException
+     * @throws IOException If unable to listen for connections.
+     * @throws InterruptedException If listeneing thread is interrupted.
      */
     public void start() throws IOException, InterruptedException {
         // listen for connections in a new thread
@@ -189,9 +189,9 @@ public class Sensor {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         //Appliance a1 = new Appliance(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
-        //Sensor a1 = new Sensor("A1", 10, 10);
+        Sensor a1 = new Sensor("A1", 10, 10);
         
-        Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        //Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         a1.start();
     }
 }
