@@ -7,9 +7,9 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.network.Connection;
 import ca.mta.iottestbed.network.Listener;
-import ca.mta.iottestbed.tools.BufferedLogger;
 
 /**
  * A connected sensor.

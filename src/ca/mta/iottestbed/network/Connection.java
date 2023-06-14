@@ -5,7 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 
-import ca.mta.iottestbed.tools.Logger;
+import ca.mta.iottestbed.logger.Logger;
 
 /**
  * A facade for a Socket.

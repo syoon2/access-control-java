@@ -5,9 +5,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.network.Connection;
 import ca.mta.iottestbed.network.Listener;
-import ca.mta.iottestbed.tools.BufferedLogger;
 
 /**
  * A smart meter that reads data from sensors over the network.

@@ -1,4 +1,4 @@
-package ca.mta.iottestbed.tools;
+package ca.mta.iottestbed.logger;
 
 /**
  * A buffered logger for storing diagnostic messages.

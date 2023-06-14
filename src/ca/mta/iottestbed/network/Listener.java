@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import ca.mta.iottestbed.tools.Logger;
+import ca.mta.iottestbed.logger.Logger;
 
 /**
  * Facade for ServerSocket.
