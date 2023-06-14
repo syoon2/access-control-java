@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
@@ -52,7 +51,7 @@ public class Sensor {
     /**
      * Set of active connections.
      */
-    private Set<Connection> connections;
+    private HashSet<Connection> connections;
     
     /**
      * Logger for network messages.
@@ -180,9 +179,9 @@ public class Sensor {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         //Appliance a1 = new Appliance(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
-        Sensor a1 = new Sensor("A1", 10, 10);
+        //Sensor a1 = new Sensor("A1", 10, 10);
         
-        //Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         a1.start();
     }
 }
