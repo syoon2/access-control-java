@@ -20,6 +20,11 @@ public class Listener {
     private ServerSocket socket;
 
     /**
+     * Port to listen on.
+     */
+    private int port;
+
+    /**
      * Optional logger to write to.
      */
     private Logger logger;
@@ -32,6 +37,7 @@ public class Listener {
      */
     public Listener(int port) throws IOException {
         socket = new ServerSocket(port);
+        this.port = port;
     }
 
     public Listener(int port, Logger logger) throws IOException {
@@ -48,8 +54,13 @@ public class Listener {
         // attempt to accept connection
         try {
             Socket incoming = socket.accept();
-            log("Opened connection to " + incoming.getInetAddress() + ":" + incoming.getLocalPort());
-            return new Connection(incoming);
+            log("Opened connection to " + incoming.getInetAddress().getHostAddress() + ":" + incoming.getLocalPort());
+            
+            if(logger != null) {
+                return new Connection(incoming, logger);
+            } else {
+                return new Connection(incoming);
+            }
         } 
         
         // log failure and return null
@@ -58,6 +69,26 @@ public class Listener {
             return null;
         }
     }  
+
+    /**
+     * Close this Listener.
+     * 
+     * @return {@code true} if successful.
+     */
+    public boolean close() {
+        // log success
+        try {
+            socket.close();
+            log("Closed listener on port " + port);
+            return true;
+        } 
+        
+        // log failure
+        catch(IOException e) {
+            log("Failed to close listener on port " + port);
+            return false;
+        }
+    }
 
     /**
      * Write to the logger.

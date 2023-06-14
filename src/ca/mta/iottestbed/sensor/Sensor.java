@@ -1,16 +1,15 @@
 package ca.mta.iottestbed.sensor;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import ca.mta.iottestbed.network.Connection;
+import ca.mta.iottestbed.network.Listener;
 import ca.mta.iottestbed.tools.BufferedLogger;
-import ca.mta.iottestbed.tools.NetworkUtils;
 
 /**
  * A connected sensor.
@@ -53,7 +52,7 @@ public class Sensor {
     /**
      * Set of active connections.
      */
-    private Set<Socket> connections;
+    private Set<Connection> connections;
 
     /**
      * Logger for sensor readings.
@@ -76,7 +75,7 @@ public class Sensor {
         this.name = name;
         this.power = power;
         this.water = water;
-        this.connections = new HashSet<Socket>();
+        this.connections = new HashSet<Connection>();
         this.readings = new BufferedLogger();
         this.networkLog = new BufferedLogger();
     }
@@ -115,32 +114,19 @@ public class Sensor {
 
         // log readings locally
         readings.log("Water: " + water + "; Power: " + power);
-
-        // build message to send over network
-        String message = NetworkUtils.buildMessage("give", "w:" + water, "e:" + power, name);
       
         // iterate over each connection
-        Iterator<Socket> iterator = connections.iterator();
-        while(iterator.hasNext()) {
-            
+        Iterator<Connection> iterator = connections.iterator();
+
+        while(iterator.hasNext()) {    
             // get next connection
-            Socket thisSocket = iterator.next();
-            
-            // attempt to send message
-            if(NetworkUtils.writeSocket(thisSocket, message, networkLog)) {
-                //networkLog.log("Sent " + message + " to " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
-            } 
-            
-            // close connection if failed
-            else if(NetworkUtils.closeSocket(thisSocket)) {
-                networkLog.log("Closed connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
+            Connection thisSocket = iterator.next();
+     
+            // attempt to send message. if send fails, attempt to close.
+            // if close is successful, remove connection.
+            if(!thisSocket.send("give", "w:" + water, "e:" + power, name) && thisSocket.close()) {
                 iterator.remove();
             } 
-            
-            // failed to close connection
-            else {
-                networkLog.log("Failed to close connection to meter " + thisSocket.getInetAddress() + ":" + thisSocket.getLocalPort());
-            }
         }
     }
 
@@ -151,26 +137,24 @@ public class Sensor {
      */
     private void listen() throws IOException {
         
-        ServerSocket listener = new ServerSocket(LISTENING_PORT);
+        Listener listener = new Listener(LISTENING_PORT, networkLog);
+        
         boolean active = true;
 
         while(active) {
             // accept an incoming connection
-            Socket connectedSocket = listener.accept();
-            networkLog.log("Received connection from " + connectedSocket.getInetAddress() + ":" + connectedSocket.getLocalPort());
+            Connection connection = listener.accept();
             
             // read input
-            String input = NetworkUtils.readSocket(connectedSocket, networkLog);
-            String[] terms = input.split(NetworkUtils.separator);
+            String[] terms = connection.receive();
             
             // if the connection wants to add a meter, add a meter
             if(terms[0].equals("addmeter")) {
-                connections.add(new Socket(connectedSocket.getInetAddress(), SENDING_PORT));
-                networkLog.log("Added meter " + connectedSocket.getInetAddress() + ":" + connectedSocket.getLocalPort());
+                connections.add(new Connection(connection.getIP().toString(), SENDING_PORT, networkLog));
             }
         }
 
-        NetworkUtils.closeSocket(listener);
+        listener.close();
     }
 
     /**

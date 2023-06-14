@@ -40,6 +40,17 @@ public class Connection {
     }
 
     /**
+     * Create a new, logged Connection from a Socket.
+     * 
+     * @param socket Socket to wrap.
+     * @param logger Logger to write to.
+     */
+    protected Connection(Socket socket, Logger logger) {
+        this(socket);
+        this.logger = logger;
+    }
+
+    /**
      * Create a new Connection.
      * 
      * @param ip IP address.
@@ -79,7 +90,7 @@ public class Connection {
             log("Sent " + data + " to " + getHost());
             return true;
         } 
-        
+
         // return false if failed
         catch(IOException e) {
             log("Failed to send " + data + " to " + getHost());
@@ -127,6 +138,15 @@ public class Connection {
     }
 
     /**
+     * Return the IP this Connection is connected to.
+     * 
+     * @return IP this Connection is connected to.
+     */
+    public String getIP() {
+        return socket.getInetAddress().getHostAddress();
+    }
+
+    /**
      * Combine tokens into a String. Delimit tokens with the separator (constant).
      * 
      * @param tokens Tokens to build message from.
@@ -167,7 +187,7 @@ public class Connection {
      * @return ip:localPort
      */
     private String getLocalHost() {
-        return socket.getInetAddress() + ":" + socket.getLocalPort();
+        return socket.getInetAddress().getHostAddress() + ":" + socket.getLocalPort();
     }
 
     /**
@@ -176,6 +196,6 @@ public class Connection {
      * @return ip:port
      */
     private String getHost() {
-        return socket.getInetAddress() + ":" + socket.getPort();
+        return socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
     }
 }
