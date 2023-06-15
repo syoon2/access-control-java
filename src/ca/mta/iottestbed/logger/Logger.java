@@ -9,9 +9,9 @@ package ca.mta.iottestbed.logger;
 public interface Logger {
 
     /**
-     * Log a series of messages.
+     * Log a message.
      * 
-     * @param messages Messages to log.
+     * @param messages Message to log.
      */
-    public void log(String ... messages);
+    public void log(String message);
 }

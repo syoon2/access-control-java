@@ -1,5 +1,7 @@
 package ca.mta.iottestbed.logger;
 
+import java.util.Date;
+
 /**
  * A buffered logger for storing diagnostic messages.
  * 
@@ -42,7 +44,11 @@ public class BufferedLogger implements Logger {
      * 
      * @param message Message to log.
      */
+    @Override
     public void log(String message) {
+        // add a timestamp
+        timeStamp();
+
         // write message to buffer
         for(char character : message.toCharArray()) {
             checkSize();
@@ -83,6 +89,17 @@ public class BufferedLogger implements Logger {
     }
 
     /**
+     * Add a timestamp to the log.
+     */
+    private void timeStamp() {
+        char[] date = ("[" + new Date().toString() + "] ").toCharArray();
+        for(int i = 0; i < date.length; i++) {
+            checkSize();
+            buffer[size++] = date[i];
+        }
+    }
+
+    /**
      * Increase the size of the buffer by a factor of 2.
      */
     private void increaseLogSize() {
@@ -100,17 +117,5 @@ public class BufferedLogger implements Logger {
         // replace buffer and capacity
         buffer = newBuffer;
         capacity = newCapacity;
-    }
-
-    /**
-     * Log multiple messages.
-     * 
-     * @param messages Messages to log.
-     */
-    @Override
-    public void log(String... messages) {
-        for(String message : messages) {
-            log(message);
-        }
     }
 }
