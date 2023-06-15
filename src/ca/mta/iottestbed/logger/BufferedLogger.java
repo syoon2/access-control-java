@@ -27,22 +27,30 @@ public class BufferedLogger implements Logger {
     }
 
     /**
+     * Create a new BufferedLogger with a preset initial size.
+     * 
+     * @param size Initial size.
+     */
+    public BufferedLogger(int size) {
+        this.size = 0;
+        this.capacity = size;
+        buffer = new char[this.capacity];
+    }
+
+    /**
      * Log a message.
      * 
      * @param message Message to log.
      */
     public void log(String message) {
-        // increase size if necessary
-        if(size + message.length() >= capacity - 3) {
-            increaseLogSize();
-        }
-
         // write message to buffer
         for(char character : message.toCharArray()) {
+            checkSize();
             buffer[size++] = character;
         }
 
         // add newline
+        checkSize();
         buffer[size++] = '\n';
     }
 
@@ -62,6 +70,16 @@ public class BufferedLogger implements Logger {
      */
     public void printFlush() {
         System.out.print(flush());
+    }
+
+    /**
+     * Check if the size needs to be increased, and call
+     * increaseLogSize() if it does.
+     */
+    private void checkSize() {
+        if(size >= capacity - 1) {
+            increaseLogSize();
+        }
     }
 
     /**
