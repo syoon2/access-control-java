@@ -4,7 +4,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashSet;
 
+import ca.mta.iottestbed.logger.Loggable;
 import ca.mta.iottestbed.logger.Logger;
 
 /**
@@ -13,7 +15,7 @@ import ca.mta.iottestbed.logger.Logger;
  * @author Hayden Walker
  * @version 2023-06-14
  */
-public class Connection {
+public class Connection implements Loggable {
     
     /**
      * Delimits 'tokens', or Strings that make up a message.
@@ -28,26 +30,16 @@ public class Connection {
     /**
      * Optional logger to write to.
      */
-    private Logger logger;
+    private HashSet<Logger> loggers;
 
     /**
      * Create a new Connection from a Socket.
      * 
      * @param socket Socket to wrap.
      */
-    protected Connection(Socket socket) {
+    public Connection(Socket socket) {
         this.socket = socket;
-    }
-
-    /**
-     * Create a new, logged Connection from a Socket.
-     * 
-     * @param socket Socket to wrap.
-     * @param logger Logger to write to.
-     */
-    protected Connection(Socket socket, Logger logger) {
-        this(socket);
-        this.logger = logger;
+        this.loggers = new HashSet<Logger>();
     }
 
     /**
@@ -59,19 +51,6 @@ public class Connection {
      */
     public Connection(String ip, int port) throws IOException {
         this(new Socket(ip, port));
-    }
-
-    /**
-     * Create a new, logged Connection.
-     * 
-     * @param ip IP address.
-     * @param port Network port.
-     * @param logger Logger to write to.
-     * @throws IOException If unable to connect.
-     */
-    public Connection(String ip, int port, Logger logger) throws IOException {
-        this(ip, port);
-        this.logger = logger;
     }
 
     /**
@@ -176,7 +155,7 @@ public class Connection {
      * @param message Message to log.
      */
     private void log(String message) {
-        if(logger != null) {
+        for(Logger logger : loggers) {
             logger.log(message);
         }
     }
@@ -197,5 +176,28 @@ public class Connection {
      */
     private String getHost() {
         return socket.getInetAddress().getHostAddress() + ":" + socket.getPort();
+    }
+
+    /**
+     * Add a Logger to this Connection object. The Connection
+     * will write logs to this Logger.
+     * 
+     * @param logger Logger to add.
+     */
+    @Override
+    public void addLogger(Logger logger) {
+        loggers.add(logger);
+    }
+
+    /**
+     * Remove a Logger from this Connection object. The
+     * Connection will no longer write to a Logger after
+     * it is removed.
+     * 
+     * @param logger Logger to remove.
+     */
+    @Override
+    public void removeLogger(Logger logger) {
+        loggers.remove(logger);
     }
 }

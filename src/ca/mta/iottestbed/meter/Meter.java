@@ -58,7 +58,8 @@ public class Meter {
      * @param ip IP address.
      */
     private void addDevice(String ip) throws IOException {
-        Connection connection = new Connection(ip, SENDING_PORT, networkLog);
+        Connection connection = new Connection(ip, SENDING_PORT);
+        connection.addLogger(networkLog);
         connection.send("addmeter");
         connections.add(connection);
     }
@@ -72,12 +73,14 @@ public class Meter {
      */
     private void listen() throws IOException {
         // ServerSocket to listen for incoming connections
-        Listener listener = new Listener(LISTENING_PORT, networkLog);
+        Listener listener = new Listener(LISTENING_PORT);
+        listener.addLogger(networkLog);
         boolean active = true;
 
         while(active) {
             // read new socket
             Connection connection = listener.accept();
+            connection.addLogger(networkLog);
 
             // create new thread to listen to the socket
             new Thread(new Runnable() {
@@ -149,18 +152,18 @@ public class Meter {
      * @param args Usage: java -jar Meter.jar [name] [sensor IP addresses ...]
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        Meter meter1 = new Meter(args[0]);
+        // Meter meter1 = new Meter(args[0]);
         
-        String[] ips = new String[args.length - 1];
+        // String[] ips = new String[args.length - 1];
         
-        for(int i = 1; i < args.length; i++) {
-            ips[i - 1] = args[i];
-        }
+        // for(int i = 1; i < args.length; i++) {
+        //     ips[i - 1] = args[i];
+        // }
         
-        meter1.start(ips);
+        // meter1.start(ips);
 
-        //Meter meter1 = new Meter("M1");
-        //meter1.start(new String[]{"127.0.0.1"});
+        Meter meter1 = new Meter("M1");
+        meter1.start(new String[]{"127.0.0.1"});
 
     }
 }

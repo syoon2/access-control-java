@@ -3,7 +3,9 @@ package ca.mta.iottestbed.network;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
 
+import ca.mta.iottestbed.logger.Loggable;
 import ca.mta.iottestbed.logger.Logger;
 
 /**
@@ -12,7 +14,7 @@ import ca.mta.iottestbed.logger.Logger;
  * @author Hayden Walker
  * @version 2023-06-14
  */
-public class Listener {
+public class Listener implements Loggable {
     
     /**
      * Socket to listen on.
@@ -27,7 +29,7 @@ public class Listener {
     /**
      * Optional logger to write to.
      */
-    private Logger logger;
+    private HashSet<Logger> loggers;
 
     /**
      * Start listening on a port.
@@ -36,13 +38,9 @@ public class Listener {
      * @throws IOException If failed to open port.
      */
     public Listener(int port) throws IOException {
-        socket = new ServerSocket(port);
+        this.socket = new ServerSocket(port);
         this.port = port;
-    }
-
-    public Listener(int port, Logger logger) throws IOException {
-        this(port);
-        this.logger = logger;        
+        this.loggers = new HashSet<Logger>();
     }
 
     /**
@@ -56,11 +54,8 @@ public class Listener {
             Socket incoming = socket.accept();
             log("Opened connection to " + incoming.getInetAddress().getHostAddress() + ":" + incoming.getLocalPort());
             
-            if(logger != null) {
-                return new Connection(incoming, logger);
-            } else {
-                return new Connection(incoming);
-            }
+            // create a new Connection
+            return new Connection(incoming);
         } 
         
         // log failure and return null
@@ -96,9 +91,32 @@ public class Listener {
      * @param message Message to log.
      */
     private void log(String message) {
-        if(logger != null) {
+        for(Logger logger : loggers) {
             logger.log(message);
         }
+    }
+    
+    /**
+     * Add a Logger to this Listener object. The Listener
+     * will write logs to this Logger.
+     * 
+     * @param logger Logger to add.
+     */
+    @Override
+    public void addLogger(Logger logger) {
+        loggers.add(logger);
+    }
+
+    /**
+     * Remove a Logger from this Listener object. The
+     * Listener will no longer write to a Logger after
+     * it is removed.
+     * 
+     * @param logger Logger to remove.
+     */
+    @Override
+    public void removeLogger(Logger logger) {
+        loggers.add(logger);
     }
 
 }
