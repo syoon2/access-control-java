@@ -1,10 +1,14 @@
 package ca.mta.iottestbed.meter;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
+import ca.mta.iottestbed.logger.Timestamp;
+import ca.mta.iottestbed.logger.BufferedFileLogger;
 import ca.mta.iottestbed.network.Connection;
 import ca.mta.iottestbed.network.Listener;
 
@@ -12,7 +16,7 @@ import ca.mta.iottestbed.network.Listener;
  * A smart meter that reads data from sensors over the network.
  * 
  * @author Hayden Walker
- * @version 2023-06-13
+ * @version 2023-06-15
  */
 public class Meter {
 
@@ -30,6 +34,12 @@ public class Meter {
      * Set of active connections.
      */
     private HashSet<Connection> connections;
+
+    /**
+     * Logs for each sensor's data. Keys are sensor names,
+     * and values are the logs.
+     */
+    private HashMap<Connection, BufferedFileLogger> messageLogs;
 
     /**
      * Meter's name.
@@ -50,6 +60,8 @@ public class Meter {
         this.connections = new HashSet<Connection>();
         this.name = name;
         this.networkLog = new BufferedLogger();
+        this.networkLog.timestampEnabled(true);
+        this.messageLogs = new HashMap<Connection, BufferedFileLogger>();
     }
        
     /**
@@ -82,6 +94,13 @@ public class Meter {
             Connection connection = listener.accept();
             connection.addLogger(networkLog);
 
+            // get device id
+            String id = connection.receive()[0];
+
+            // add a message logger for this connection
+            File csv = new File(id + ".csv");
+            messageLogs.put(connection, new BufferedFileLogger(csv));
+
             // create new thread to listen to the socket
             new Thread(new Runnable() {
                 @Override
@@ -108,15 +127,30 @@ public class Meter {
     
         while(active) {
             // read data from socket
-            String[] data = connection.receive();
-            
+            String[] data = connection.receive();        
+
+            // log data
+            if(data != null) {
+                // write to log
+                messageLogs.get(connection).log(
+                    new Timestamp() + "," +
+                    data[2].substring(2, data[2].length()) + "," +
+                    data[3].substring(2, data[3].length())
+                );
+            }
+
             // stop when read fails
-            if(data == null) {
+            else {
                 active = false;
             }
         }
 
-        // close connection to socket
+        // close and remove message logger
+        messageLogs.get(connection).close();
+        messageLogs.remove(connection);
+
+        // close and remove connection
+        connections.remove(connection);
         connection.close();
     }
 
@@ -141,7 +175,20 @@ public class Meter {
         while(true) {
             //System.out.println(name);
             //displayReadings();
+            //networkLog.printFlush();
             networkLog.printFlush();
+
+            // System.out.println("Active connections:");
+
+            // for(Connection connection : connections) {
+            //     System.out.println("\t" + connection.getIP());
+            // }
+
+            // flush all sensor logs
+            for(BufferedFileLogger sensorLog : messageLogs.values()) {
+                sensorLog.write();
+            }
+
             TimeUnit.SECONDS.sleep(5);
         }
     }

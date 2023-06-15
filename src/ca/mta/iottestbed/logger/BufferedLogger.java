@@ -1,7 +1,5 @@
 package ca.mta.iottestbed.logger;
 
-import java.util.Date;
-
 /**
  * A buffered logger for storing diagnostic messages.
  * 
@@ -19,13 +17,13 @@ public class BufferedLogger implements Logger {
     private int size;
     private int capacity;
 
+    private boolean timestampEnabled;
+
     /**
      * Create a new BufferedLogger.
      */
     public BufferedLogger() {
-        size = 0;
-        capacity = DEFAULT_SIZE;
-        buffer = new char[DEFAULT_SIZE];
+        this(DEFAULT_SIZE);
     }
 
     /**
@@ -37,6 +35,7 @@ public class BufferedLogger implements Logger {
         this.size = 0;
         this.capacity = size;
         buffer = new char[this.capacity];
+        timestampEnabled = false;
     }
 
     /**
@@ -47,7 +46,9 @@ public class BufferedLogger implements Logger {
     @Override
     public void log(String message) {
         // add a timestamp
-        timeStamp();
+        if(timestampEnabled) {
+            logTimestamp();
+        }
 
         // write message to buffer
         for(char character : message.toCharArray()) {
@@ -79,6 +80,15 @@ public class BufferedLogger implements Logger {
     }
 
     /**
+     * Enable or disable timestamps.
+     * 
+     * @param status {@code true} to enable timestamps.
+     */
+    public void timestampEnabled(boolean status) {
+        this.timestampEnabled = status;
+    }
+
+    /**
      * Check if the size needs to be increased, and call
      * increaseLogSize() if it does.
      */
@@ -91,8 +101,8 @@ public class BufferedLogger implements Logger {
     /**
      * Add a timestamp to the log.
      */
-    private void timeStamp() {
-        char[] date = ("[" + new Date().toString() + "] ").toCharArray();
+    private void logTimestamp() {
+        char[] date = ("[" + new Timestamp().toString() + "] ").toCharArray();
         for(int i = 0; i < date.length; i++) {
             checkSize();
             buffer[size++] = date[i];

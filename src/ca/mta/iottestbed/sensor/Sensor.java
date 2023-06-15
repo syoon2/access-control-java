@@ -71,6 +71,7 @@ public class Sensor {
         this.water = water;
         this.connections = new HashSet<Connection>();
         this.networkLog = new BufferedLogger();
+        this.networkLog.timestampEnabled(true);
     }
 
     /**
@@ -144,6 +145,7 @@ public class Sensor {
             if(terms[0].equals("addmeter")) {
                 Connection newConnection = new Connection(connection.getIP().toString(), SENDING_PORT);
                 newConnection.addLogger(networkLog);
+                newConnection.send(name, "OK");
                 connections.add(newConnection);
 
             }
