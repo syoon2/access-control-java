@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.network.Connection;
@@ -64,7 +63,7 @@ public class Sensor {
      * @param power Power consumption.
      * @param water Water consumption.
      */
-    public Sensor(String name, int power, int water) {
+    public Sensor(String name, int water, int power) {
         this.randomGenerator = new Random();
         this.name = name;
         this.power = power;
@@ -169,12 +168,24 @@ public class Sensor {
             }
         }).start();
 
-        // report readings every 5 seconds
-        while(true) {
-            reportReadings();
-            networkLog.printFlush();
-            TimeUnit.SECONDS.sleep(5);
-       }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // report readings every 5 seconds
+                while(true) {
+                    reportReadings();
+                    networkLog.printFlush();
+                    //TimeUnit.SECONDS.sleep(5);
+                    
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
     }
 
     /**
@@ -187,8 +198,17 @@ public class Sensor {
     public static void main(String[] args) throws IOException, InterruptedException {
         //Appliance a1 = new Appliance(args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]));
         Sensor a1 = new Sensor("A1", 10, 10);
-        
-        //Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
         a1.start();
+
+        // // start the program
+        // try {
+        //     Sensor a1 = new Sensor(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        //     a1.start();
+        // } 
+        
+        // // display message for invalid args
+        // catch(IndexOutOfBoundsException | NumberFormatException e) {
+        //     System.err.println("Usage: java -jar Sensor.jar [name] [water value] [electricity value]");
+        // }
     }
 }

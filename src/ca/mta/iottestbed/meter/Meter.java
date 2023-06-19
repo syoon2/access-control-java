@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.TimeUnit;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.logger.Timestamp;
@@ -129,8 +128,13 @@ public class Meter {
             // read data from socket
             String[] data = connection.receive();        
 
-            // log data
-            if(data != null) {
+            // check for failure
+            if(data == null) {
+                active = false;
+            }
+
+            // log readings
+            else if(data[1].equals("report")) {
                 // write to log
                 messageLogs.get(connection).log(
                     new Timestamp() + "," +
@@ -139,9 +143,9 @@ public class Meter {
                 );
             }
 
-            // stop when read fails
-            else {
-                active = false;
+            // respond to ping
+            else if(data[1].equals("ping")) {
+                connection.send(name, "pong");
             }
         }
 
@@ -171,26 +175,38 @@ public class Meter {
 
         System.out.println("Meter " + name + " started.");
 
-        // display readings periodically
-        while(true) {
-            //System.out.println(name);
-            //displayReadings();
-            //networkLog.printFlush();
-            networkLog.printFlush();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // display readings periodically
+                while(true) {
+                    //System.out.println(name);
+                    //displayReadings();
+                    //networkLog.printFlush();
+                    networkLog.printFlush();
 
-            // System.out.println("Active connections:");
+                    // System.out.println("Active connections:");
 
-            // for(Connection connection : connections) {
-            //     System.out.println("\t" + connection.getIP());
-            // }
+                    // for(Connection connection : connections) {
+                    //     System.out.println("\t" + connection.getIP());
+                    // }
 
-            // flush all sensor logs
-            for(BufferedFileLogger sensorLog : messageLogs.values()) {
-                sensorLog.write();
+                    // flush all sensor logs
+                    for(BufferedFileLogger sensorLog : messageLogs.values()) {
+                        sensorLog.write();
+                    }
+
+                    //TimeUnit.SECONDS.sleep(5);
+                    try {
+                        Thread.sleep(30000);
+                    } catch (InterruptedException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
             }
-
-            TimeUnit.SECONDS.sleep(5);
-        }
+        }).start();
+        
     }
 
     /**
@@ -199,18 +215,25 @@ public class Meter {
      * @param args Usage: java -jar Meter.jar [name] [sensor IP addresses ...]
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        // Meter meter1 = new Meter(args[0]);
+        // // attempt to start
+        // try { 
+        //     Meter meter1 = new Meter(args[0]);
         
-        // String[] ips = new String[args.length - 1];
-        
-        // for(int i = 1; i < args.length; i++) {
-        //     ips[i - 1] = args[i];
+        //     String[] ips = new String[args.length - 1];
+            
+        //     for(int i = 1; i < args.length; i++) {
+        //         ips[i - 1] = args[i];
+        //     }
+            
+        //     meter1.start(ips);
         // }
-        
-        // meter1.start(ips);
+
+        // // display error message
+        // catch(Exception e) {
+        //     System.err.println("Usage: java -jar Meter.jar [name] [valid IPs ...]");
+        // }
 
         Meter meter1 = new Meter("M1");
         meter1.start(new String[]{"127.0.0.1"});
-
     }
 }
