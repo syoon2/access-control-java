@@ -12,11 +12,24 @@ public class BufferedLogger implements Logger {
      */
     public static final int DEFAULT_SIZE = 50;
 
-    // store contents, size, and capacity
+    /**
+     * Store logged messages.
+     */
     private char[] buffer;
+
+    /**
+     * Store number of characters stored in the log.
+     */
     private int size;
+
+    /**
+     * Store the size of the buffer.
+     */
     private int capacity;
 
+    /**
+     * Store whether or not to write timestamps.
+     */
     private boolean timestampEnabled;
 
     /**
