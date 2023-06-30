@@ -75,7 +75,7 @@ public class Sensor {
     private double getPower() {
         // get UNIX time and plug into sine wave with power consumption as amplitude
         long milliseconds = new Date().getTime();
-        return power * Math.sin(milliseconds);
+        return power * Math.abs(Math.sin(milliseconds));
     }
 
     /**
@@ -86,7 +86,7 @@ public class Sensor {
     private double getWater() {
         // get UNIX time and plug into sine wave with water consumption as amplitude
         long milliseconds = new Date().getTime();
-        return water * Math.sin(milliseconds);
+        return water * Math.abs(Math.sin(milliseconds));
 
     }
 
