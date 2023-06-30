@@ -1,9 +1,9 @@
 package ca.mta.iottestbed.sensor;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Random;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.network.Connection;
@@ -26,11 +26,6 @@ public class Sensor {
      * The sensor will send information to meters on this port.
      */
     private static final int SENDING_PORT = 5006;
-
-    /**
-     * Random number generator for generating sensor data.
-     */
-    private Random randomGenerator;
 
     /**
      * Maximum power consumption.
@@ -64,7 +59,6 @@ public class Sensor {
      * @param water Water consumption.
      */
     public Sensor(String name, int water, int power) {
-        this.randomGenerator = new Random();
         this.name = name;
         this.power = power;
         this.water = water;
@@ -78,8 +72,10 @@ public class Sensor {
      * 
      * @return The current water consumption.
      */
-    private int getPower() {
-        return randomGenerator.nextInt(power);
+    private double getPower() {
+        // get UNIX time and plug into sine wave with power consumption as amplitude
+        long milliseconds = new Date().getTime();
+        return power * Math.sin(milliseconds);
     }
 
     /**
@@ -87,8 +83,11 @@ public class Sensor {
      * 
      * @return The current water consumption.
      */
-    private int getWater() {
-        return randomGenerator.nextInt(water);
+    private double getWater() {
+        // get UNIX time and plug into sine wave with water consumption as amplitude
+        long milliseconds = new Date().getTime();
+        return water * Math.sin(milliseconds);
+
     }
 
     /**
@@ -102,8 +101,8 @@ public class Sensor {
      */
     private void reportReadings() {
         // get readings
-        int water = getWater();
-        int power = getPower();
+        double water = getWater();
+        double power = getPower();
       
         // iterate over each connection
         Iterator<Connection> iterator = connections.iterator();
