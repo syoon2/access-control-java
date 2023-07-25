@@ -2,6 +2,7 @@ package ca.mta.iottestbed.meter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -104,7 +105,11 @@ public class Meter {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    monitor(connection);
+                    try {
+                        monitor(connection);
+                    } catch (IOException ioe) {
+                        throw new UncheckedIOException(ioe);
+                    }
                 }
             }).start();
         }
@@ -120,7 +125,7 @@ public class Meter {
      * 
      * @param socket Socket to listen to.
      */
-    private void monitor(Connection connection) {
+    private void monitor(Connection connection) throws IOException {
         // listen while connection is active
         boolean active = true;
     

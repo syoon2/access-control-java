@@ -113,8 +113,13 @@ public class Sensor {
      
             // attempt to send message. if send fails, attempt to close.
             // if close is successful, remove connection.
-            if(!thisSocket.send(name, "report", "w:" + water, "e:" + power) && thisSocket.close()) {
-                iterator.remove();
+            if(!thisSocket.send(name, "report", "w:" + water, "e:" + power)) {
+                try {
+                    thisSocket.close();
+                    iterator.remove();
+                } catch (IOException ioe) {
+                    // close is unsuccessful, do not remove connection
+                }
             } 
         }
     }
