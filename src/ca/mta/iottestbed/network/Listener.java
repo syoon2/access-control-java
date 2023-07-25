@@ -68,6 +68,9 @@ public class Listener implements Closeable, Loggable {
 
     /**
      * Close this Listener.
+     * 
+     * @throws IOException  if an I/O error occurs while closing the underlying
+     *                      socket
      */
     @Override
     public void close() throws IOException {

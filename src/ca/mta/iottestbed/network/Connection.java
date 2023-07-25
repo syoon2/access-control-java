@@ -100,6 +100,9 @@ public class Connection implements Closeable, Loggable {
 
     /**
      * Close the connection.
+     * 
+     * @throws IOException  if an I/O error occurs while closing the underlying
+     *                      socket
      */
     @Override
     public void close() throws IOException {

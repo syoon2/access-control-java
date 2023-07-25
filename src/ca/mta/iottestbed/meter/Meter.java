@@ -124,6 +124,7 @@ public class Meter {
      * if a read fails.
      * 
      * @param socket Socket to listen to.
+     * @throws IOException if an I/O error occurs
      */
     private void monitor(Connection connection) throws IOException {
         // listen while connection is active
