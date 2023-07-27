@@ -1,5 +1,6 @@
 package ca.mta.iottestbed.network;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +15,7 @@ import ca.mta.iottestbed.logger.Logger;
  * @author Hayden Walker
  * @version 2023-06-14
  */
-public class Listener implements Loggable {
+public class Listener implements Closeable, Loggable {
     
     /**
      * Socket to listen on.
@@ -68,20 +69,20 @@ public class Listener implements Loggable {
     /**
      * Close this Listener.
      * 
-     * @return {@code true} if successful.
+     * @throws IOException  if an I/O error occurs while closing the underlying
+     *                      socket
      */
-    public boolean close() {
+    @Override
+    public void close() throws IOException {
         // log success
         try {
             socket.close();
             log("Closed listener on port " + port);
-            return true;
         } 
-        
         // log failure
         catch(IOException e) {
             log("Failed to close listener on port " + port);
-            return false;
+            throw new IOException("Failed to close listener on port " + port, e);
         }
     }
 
