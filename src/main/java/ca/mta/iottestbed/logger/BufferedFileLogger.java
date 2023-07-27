@@ -1,10 +1,11 @@
 package ca.mta.iottestbed.logger;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class BufferedFileLogger implements Logger {
+public class BufferedFileLogger implements Closeable, Logger {
     /**
      * BufferedLogger to write logs to.
      */
@@ -60,18 +61,9 @@ public class BufferedFileLogger implements Logger {
     /**
      * Close the BufferedFileLogger.
      * 
-     * @return {@code true} if successful.
+     * @throws IOException if an I/O error occurs
      */
-    public boolean close() {
-        // attempt to close
-        try {
-            writer.close();
-            return true;
-        } 
-        
-        // return false if failed
-        catch(IOException e) {
-            return false;
-        }
+    public void close() throws IOException {
+        writer.close();
     }
 }

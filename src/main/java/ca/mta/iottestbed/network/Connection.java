@@ -1,5 +1,6 @@
 package ca.mta.iottestbed.network;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import ca.mta.iottestbed.logger.Logger;
  * @author Hayden Walker
  * @version 2023-06-14
  */
-public class Connection implements Loggable {
+public class Connection implements Closeable, Loggable {
     
     /**
      * Delimits 'tokens', or Strings that make up a message.
@@ -100,19 +101,18 @@ public class Connection implements Loggable {
     /**
      * Close the connection.
      * 
-     * @return {@code true} if successful.
+     * @throws IOException  if an I/O error occurs while closing the underlying
+     *                      socket
      */
-    public boolean close() {
-        // attempt to close
+    @Override
+    public void close() throws IOException {
         try {
             socket.close();
             log("Closed connection to " + getLocalHost());
-            return true;
         }
-        
         catch(IOException e) {
             log("Failed to close connection to " + getLocalHost());
-            return false;
+            throw new IOException("Failed to close connection to " + getLocalHost(), e);
         }
     }
 
