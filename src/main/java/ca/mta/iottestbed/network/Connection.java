@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashSet;
+import java.util.Objects;
 
 import ca.mta.iottestbed.logger.Loggable;
 import ca.mta.iottestbed.logger.Logger;
@@ -37,9 +38,10 @@ public class Connection implements Closeable, Loggable {
      * Create a new Connection from a Socket.
      * 
      * @param socket Socket to wrap.
+     * @throws NullPointerException if argument is {@code null}
      */
     public Connection(Socket socket) {
-        this.socket = socket;
+        this.socket = Objects.requireNonNull(socket);
         this.loggers = new HashSet<Logger>();
     }
 
@@ -134,6 +136,9 @@ public class Connection implements Closeable, Loggable {
     private String buildMessage(String ... tokens) {
         // use a StringBuilder
         StringBuilder out = new StringBuilder();
+
+        if (tokens == null)
+            return "null";
 
         // add each token
         for(int i = 0; i < tokens.length; i++) {

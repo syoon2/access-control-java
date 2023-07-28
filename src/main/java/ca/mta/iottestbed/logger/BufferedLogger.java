@@ -1,5 +1,7 @@
 package ca.mta.iottestbed.logger;
 
+import java.util.Objects;
+
 /**
  * A buffered logger for storing diagnostic messages.
  * 
@@ -43,8 +45,12 @@ public class BufferedLogger implements Logger {
      * Create a new BufferedLogger with a preset initial size.
      * 
      * @param size Initial size.
+     * @throws IllegalArgumentException if {@code size <= 0}
      */
     public BufferedLogger(int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Invalid initial buffer size: " + size);
+        }
         this.size = 0;
         this.capacity = size;
         buffer = new char[this.capacity];
@@ -64,7 +70,7 @@ public class BufferedLogger implements Logger {
         }
 
         // write message to buffer
-        for(char character : message.toCharArray()) {
+        for(char character : Objects.toString(message).toCharArray()) {
             checkSize();
             buffer[size++] = character;
         }
