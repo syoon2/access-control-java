@@ -93,11 +93,11 @@ public class Sensor {
     /**
      * Report sensor readings to connected meters.
      * 
-     * Will call {@code getWater()} and {@code getPower()}, format the readings into
-     * a {@link String}, and attempt to send that String to every {@link Socket} in {@code connections}.
+     * Will call {@link #getWater()} and {@link #getPower()}, format the readings into
+     * a {@link String}, and attempt to send that String to every {@link Socket} in {@link #connections}.
      * 
      * If a send fails, will attempt to close the connection to the socket, and remove the socket
-     * from {@code connections}.
+     * from {@link #connections}.
      */
     private void reportReadings() {
         // get readings

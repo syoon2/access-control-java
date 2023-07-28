@@ -35,14 +35,14 @@ public class BufferedLogger implements Logger {
     private boolean timestampEnabled;
 
     /**
-     * Create a new BufferedLogger.
+     * Create a new {@code BufferedLogger}.
      */
     public BufferedLogger() {
         this(DEFAULT_SIZE);
     }
 
     /**
-     * Create a new BufferedLogger with a preset initial size.
+     * Create a new {@code BufferedLogger} with the specified initial size.
      * 
      * @param size Initial size.
      * @throws IllegalArgumentException if {@code size <= 0}
@@ -57,11 +57,7 @@ public class BufferedLogger implements Logger {
         timestampEnabled = false;
     }
 
-    /**
-     * Log a message.
-     * 
-     * @param message Message to log.
-     */
+    /** {@inheritDoc} */
     @Override
     public void log(String message) {
         // add a timestamp
@@ -109,7 +105,7 @@ public class BufferedLogger implements Logger {
 
     /**
      * Check if the size needs to be increased, and call
-     * increaseLogSize() if it does.
+     * {@link #increaseLogSize()} if it does.
      */
     private void checkSize() {
         if(size >= capacity - 1) {

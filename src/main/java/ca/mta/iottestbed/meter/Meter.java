@@ -52,7 +52,7 @@ public class Meter {
     private BufferedLogger networkLog;
 
     /**
-     * Create a new Meter object.
+     * Create a new {@code Meter} object.
      * 
      * @param name Name of Meter.
      */
@@ -68,6 +68,7 @@ public class Meter {
      * Establish a connection with a sensor at a certain IP address.
      * 
      * @param ip IP address.
+     * @throws IOException if unable to connect to the specified address
      */
     private void addDevice(String ip) throws IOException {
         Connection connection = new Connection(ip, SENDING_PORT);
