@@ -133,9 +133,7 @@ public class BufferedLogger implements Logger {
         char[] newBuffer = new char[newCapacity];
         
         // copy buffer
-        for(int i = 0; i < capacity; i++) {
-            newBuffer[i] = buffer[i];
-        }
+        System.arraycopy(buffer, 0, newBuffer, 0, capacity);
 
         // replace buffer and capacity
         buffer = newBuffer;
