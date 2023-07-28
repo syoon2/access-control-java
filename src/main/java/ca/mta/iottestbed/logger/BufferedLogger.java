@@ -59,7 +59,7 @@ public class BufferedLogger implements Logger {
 
     /** {@inheritDoc} */
     @Override
-    public void log(String message) {
+    public synchronized void log(String message) {
         // add a timestamp
         if(timestampEnabled) {
             logTimestamp();
@@ -81,7 +81,7 @@ public class BufferedLogger implements Logger {
      * 
      * @return Buffer contents as a String.
      */
-    public String flush() {
+    public synchronized String flush() {
         String output = new String(buffer, 0, size);
         size = 0;
         return output;
@@ -90,7 +90,7 @@ public class BufferedLogger implements Logger {
     /**
      * Print and flush the buffer contents.
      */
-    public void printFlush() {
+    public synchronized void printFlush() {
         System.out.print(flush());
     }
 
@@ -99,7 +99,7 @@ public class BufferedLogger implements Logger {
      * 
      * @param status {@code true} to enable timestamps.
      */
-    public void timestampEnabled(boolean status) {
+    public synchronized void timestampEnabled(boolean status) {
         this.timestampEnabled = status;
     }
 
@@ -107,7 +107,7 @@ public class BufferedLogger implements Logger {
      * Check if the size needs to be increased, and call
      * {@link #increaseLogSize()} if it does.
      */
-    private void checkSize() {
+    private synchronized void checkSize() {
         if(size >= capacity - 1) {
             increaseLogSize();
         }
@@ -116,7 +116,7 @@ public class BufferedLogger implements Logger {
     /**
      * Add a timestamp to the log.
      */
-    private void logTimestamp() {
+    private synchronized void logTimestamp() {
         char[] date = ("[" + new Timestamp().toString() + "] ").toCharArray();
         for(int i = 0; i < date.length; i++) {
             checkSize();
@@ -127,7 +127,7 @@ public class BufferedLogger implements Logger {
     /**
      * Increase the size of the buffer by a factor of 2.
      */
-    private void increaseLogSize() {
+    private synchronized void increaseLogSize() {
         // calculate new size
         int newCapacity = 2 * capacity;
 

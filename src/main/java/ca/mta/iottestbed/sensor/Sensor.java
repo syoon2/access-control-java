@@ -1,8 +1,10 @@
 package ca.mta.iottestbed.sensor;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.network.Connection;
@@ -44,7 +46,7 @@ public class Sensor {
     /**
      * Set of active connections.
      */
-    private HashSet<Connection> connections;
+    private Set<Connection> connections;
     
     /**
      * Logger for network messages.
@@ -61,7 +63,7 @@ public class Sensor {
         this.name = name;
         this.power = power;
         this.water = water;
-        this.connections = new HashSet<Connection>();
+        this.connections = Collections.synchronizedSet(new HashSet<Connection>());
         this.networkLog = new BufferedLogger();
         this.networkLog.timestampEnabled(true);
     }
@@ -104,22 +106,24 @@ public class Sensor {
         double power = getPower();
       
         // iterate over each connection
-        Iterator<Connection> iterator = connections.iterator();
+        synchronized (connections) {
+            Iterator<Connection> iterator = connections.iterator();
 
-        while(iterator.hasNext()) {    
-            // get next connection
-            Connection thisSocket = iterator.next();
-     
-            // attempt to send message. if send fails, attempt to close.
-            // if close is successful, remove connection.
-            if(!thisSocket.send(name, "report", "w:" + water, "e:" + power)) {
-                try {
-                    thisSocket.close();
-                    iterator.remove();
-                } catch (IOException ioe) {
-                    // close is unsuccessful, do not remove connection
-                }
-            } 
+            while(iterator.hasNext()) {    
+                // get next connection
+                Connection thisSocket = iterator.next();
+        
+                // attempt to send message. if send fails, attempt to close.
+                // if close is successful, remove connection.
+                if(!thisSocket.send(name, "report", "w:" + water, "e:" + power)) {
+                    try {
+                        thisSocket.close();
+                        iterator.remove();
+                    } catch (IOException ioe) {
+                        // close is unsuccessful, do not remove connection
+                    }
+                } 
+            }
         }
     }
 
@@ -148,7 +152,9 @@ public class Sensor {
                 Connection newConnection = new Connection(connection.getIP().toString(), SENDING_PORT);
                 newConnection.addLogger(networkLog);
                 newConnection.send(name, "OK");
-                connections.add(newConnection);
+                synchronized (connections) {
+                    connections.add(newConnection);
+                }
 
             }
         }

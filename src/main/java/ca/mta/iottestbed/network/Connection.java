@@ -5,8 +5,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import ca.mta.iottestbed.logger.Loggable;
 import ca.mta.iottestbed.logger.Logger;
@@ -32,7 +34,7 @@ public class Connection implements Closeable, Loggable {
     /**
      * Optional logger to write to.
      */
-    private HashSet<Logger> loggers;
+    private Set<Logger> loggers;
 
     /**
      * Create a new Connection from a Socket.
@@ -42,7 +44,7 @@ public class Connection implements Closeable, Loggable {
      */
     public Connection(Socket socket) {
         this.socket = Objects.requireNonNull(socket);
-        this.loggers = new HashSet<Logger>();
+        this.loggers = Collections.synchronizedSet(new HashSet<Logger>());
     }
 
     /**
@@ -160,8 +162,10 @@ public class Connection implements Closeable, Loggable {
      * @param message Message to log.
      */
     private void log(String message) {
-        for(Logger logger : loggers) {
-            logger.log(message);
+        synchronized (loggers) {
+            for(Logger logger : loggers) {
+                logger.log(message);
+            }
         }
     }
 

@@ -4,7 +4,9 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import ca.mta.iottestbed.logger.Loggable;
 import ca.mta.iottestbed.logger.Logger;
@@ -30,7 +32,7 @@ public class Listener implements Closeable, Loggable {
     /**
      * Optional logger to write to.
      */
-    private HashSet<Logger> loggers;
+    private Set<Logger> loggers;
 
     /**
      * Start listening on a port.
@@ -41,7 +43,7 @@ public class Listener implements Closeable, Loggable {
     public Listener(int port) throws IOException {
         this.socket = new ServerSocket(port);
         this.port = port;
-        this.loggers = new HashSet<Logger>();
+        this.loggers = Collections.synchronizedSet(new HashSet<Logger>());
     }
 
     /**
@@ -92,8 +94,10 @@ public class Listener implements Closeable, Loggable {
      * @param message Message to log.
      */
     private void log(String message) {
-        for(Logger logger : loggers) {
-            logger.log(message);
+        synchronized (loggers) {
+            for(Logger logger : loggers) {
+                logger.log(message);
+            }
         }
     }
     
