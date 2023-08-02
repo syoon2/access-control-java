@@ -3,8 +3,11 @@ package ca.mta.iottestbed.meter;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import ca.mta.iottestbed.logger.BufferedLogger;
 import ca.mta.iottestbed.logger.Timestamp;
@@ -33,13 +36,13 @@ public class Meter {
     /**
      * Set of active connections.
      */
-    private HashSet<Connection> connections;
+    private Set<Connection> connections;
 
     /**
      * Logs for each sensor's data. Keys are sensor names,
      * and values are the logs.
      */
-    private HashMap<Connection, BufferedFileLogger> messageLogs;
+    private Map<Connection, BufferedFileLogger> messageLogs;
 
     /**
      * Meter's name.
@@ -52,22 +55,23 @@ public class Meter {
     private BufferedLogger networkLog;
 
     /**
-     * Create a new Meter object.
+     * Create a new {@code Meter} object.
      * 
      * @param name Name of Meter.
      */
     public Meter(String name) {
-        this.connections = new HashSet<Connection>();
+        this.connections = Collections.synchronizedSet(new HashSet<Connection>());
         this.name = name;
         this.networkLog = new BufferedLogger();
         this.networkLog.timestampEnabled(true);
-        this.messageLogs = new HashMap<Connection, BufferedFileLogger>();
+        this.messageLogs = Collections.synchronizedMap(new HashMap<Connection, BufferedFileLogger>());
     }
        
     /**
      * Establish a connection with a sensor at a certain IP address.
      * 
      * @param ip IP address.
+     * @throws IOException if unable to connect to the specified address
      */
     private void addDevice(String ip) throws IOException {
         Connection connection = new Connection(ip, SENDING_PORT);
@@ -198,8 +202,10 @@ public class Meter {
                     // }
 
                     // flush all sensor logs
-                    for(BufferedFileLogger sensorLog : messageLogs.values()) {
-                        sensorLog.write();
+                    synchronized (messageLogs) {
+                        for(BufferedFileLogger sensorLog : messageLogs.values()) {
+                            sensorLog.write();
+                        }
                     }
 
                     //TimeUnit.SECONDS.sleep(5);

@@ -11,7 +11,7 @@ public interface Logger {
     /**
      * Log a message.
      * 
-     * @param messages Message to log.
+     * @param message Message to log.
      */
     public void log(String message);
 }

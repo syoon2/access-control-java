@@ -17,7 +17,7 @@ public class Timestamp {
     private String timestamp;
 
     /**
-     * Create a new Timestamp.
+     * Create a new {@code Timestamp}.
      */
     public Timestamp() {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault()); 

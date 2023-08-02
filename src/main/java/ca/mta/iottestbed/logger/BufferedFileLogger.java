@@ -17,10 +17,10 @@ public class BufferedFileLogger implements Closeable, Logger {
     private FileWriter writer;
 
     /**
-     * Create a new BufferedFileLogger.
+     * Create a new {@code BufferedFileLogger}.
      * 
-     * @param file
-     * @throws IOException
+     * @param file the destination file
+     * @throws IOException if an I/O error occurs
      */
     public BufferedFileLogger(File file) throws IOException {
         logger = new BufferedLogger();
@@ -28,11 +28,7 @@ public class BufferedFileLogger implements Closeable, Logger {
         writer = new FileWriter(file, true);
     }
 
-    /**
-     * Log a message.
-     * 
-     * @param message Message to log.
-     */
+    /** {@inheritDoc} */
     @Override
     public void log(String message) {
         logger.log(message);

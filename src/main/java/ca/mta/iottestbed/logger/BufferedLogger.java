@@ -1,5 +1,7 @@
 package ca.mta.iottestbed.logger;
 
+import java.util.Objects;
+
 /**
  * A buffered logger for storing diagnostic messages.
  * 
@@ -33,38 +35,38 @@ public class BufferedLogger implements Logger {
     private boolean timestampEnabled;
 
     /**
-     * Create a new BufferedLogger.
+     * Create a new {@code BufferedLogger}.
      */
     public BufferedLogger() {
         this(DEFAULT_SIZE);
     }
 
     /**
-     * Create a new BufferedLogger with a preset initial size.
+     * Create a new {@code BufferedLogger} with the specified initial size.
      * 
      * @param size Initial size.
+     * @throws IllegalArgumentException if {@code size <= 0}
      */
     public BufferedLogger(int size) {
+        if (size <= 0) {
+            throw new IllegalArgumentException("Invalid initial buffer size: " + size);
+        }
         this.size = 0;
         this.capacity = size;
         buffer = new char[this.capacity];
         timestampEnabled = false;
     }
 
-    /**
-     * Log a message.
-     * 
-     * @param message Message to log.
-     */
+    /** {@inheritDoc} */
     @Override
-    public void log(String message) {
+    public synchronized void log(String message) {
         // add a timestamp
         if(timestampEnabled) {
             logTimestamp();
         }
 
         // write message to buffer
-        for(char character : message.toCharArray()) {
+        for(char character : Objects.toString(message).toCharArray()) {
             checkSize();
             buffer[size++] = character;
         }
@@ -79,7 +81,7 @@ public class BufferedLogger implements Logger {
      * 
      * @return Buffer contents as a String.
      */
-    public String flush() {
+    public synchronized String flush() {
         String output = new String(buffer, 0, size);
         size = 0;
         return output;
@@ -88,7 +90,7 @@ public class BufferedLogger implements Logger {
     /**
      * Print and flush the buffer contents.
      */
-    public void printFlush() {
+    public synchronized void printFlush() {
         System.out.print(flush());
     }
 
@@ -97,15 +99,15 @@ public class BufferedLogger implements Logger {
      * 
      * @param status {@code true} to enable timestamps.
      */
-    public void timestampEnabled(boolean status) {
+    public synchronized void timestampEnabled(boolean status) {
         this.timestampEnabled = status;
     }
 
     /**
      * Check if the size needs to be increased, and call
-     * increaseLogSize() if it does.
+     * {@link #increaseLogSize()} if it does.
      */
-    private void checkSize() {
+    private synchronized void checkSize() {
         if(size >= capacity - 1) {
             increaseLogSize();
         }
@@ -114,7 +116,7 @@ public class BufferedLogger implements Logger {
     /**
      * Add a timestamp to the log.
      */
-    private void logTimestamp() {
+    private synchronized void logTimestamp() {
         char[] date = ("[" + new Timestamp().toString() + "] ").toCharArray();
         for(int i = 0; i < date.length; i++) {
             checkSize();
@@ -125,7 +127,7 @@ public class BufferedLogger implements Logger {
     /**
      * Increase the size of the buffer by a factor of 2.
      */
-    private void increaseLogSize() {
+    private synchronized void increaseLogSize() {
         // calculate new size
         int newCapacity = 2 * capacity;
 
@@ -133,9 +135,7 @@ public class BufferedLogger implements Logger {
         char[] newBuffer = new char[newCapacity];
         
         // copy buffer
-        for(int i = 0; i < capacity; i++) {
-            newBuffer[i] = buffer[i];
-        }
+        System.arraycopy(buffer, 0, newBuffer, 0, capacity);
 
         // replace buffer and capacity
         buffer = newBuffer;
